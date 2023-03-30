@@ -6,26 +6,24 @@ const observer: Observer<any> = {
     complete: () => console.info('complete'),
 }
 
-// const obs$ = Observable.create();
-const obs$ = new Observable<string>(subscriber => {
-    subscriber.next('Hola');
-    subscriber.next('Mundo');
+const intervalo$ = new Observable<number>(subscriber => {
+    let counter = 0;
+    const interval = setInterval(() => {
+        subscriber.next(counter++);
+    }, 1000)
 
-    // throw ('Error');
-
-    subscriber.complete();
+    return () => {
+        clearInterval(interval);
+        console.log('intervalo destruido');
+    }
 });
 
-// obs$.subscribe(console.log);
-// obs$.subscribe(resp => {
-//     console.log(resp);
-// });
-// obs$.subscribe({
-//     next: (v) => console.log('next: ', v),
-//     error: (e) => console.error('error: ', e),
-//     complete: () => console.log('complete')    
-// });
-
-obs$.subscribe(observer);
-
-obs$.subscribe()
+const subscription = intervalo$.subscribe(console.log);
+const subscription2 = intervalo$.subscribe(console.log);
+const subscription3 = intervalo$.subscribe(console.log);
+ 
+setTimeout(() => {
+    subscription.unsubscribe();
+    subscription2.unsubscribe();
+    subscription3.unsubscribe();
+}, 3000);
