@@ -8,9 +8,15 @@ const observer: Observer<any> = {
 
 const intervalo$ = new Observable<number>(subscriber => {
     let counter = 0;
+
     const interval = setInterval(() => {
         subscriber.next(counter++);
+        console.log(counter);
     }, 1000)
+
+    setTimeout(() => {
+        subscriber.complete()
+    }, 2500);
 
     return () => {
         clearInterval(interval);
@@ -18,12 +24,17 @@ const intervalo$ = new Observable<number>(subscriber => {
     }
 });
 
-const subscription = intervalo$.subscribe(console.log);
-const subscription2 = intervalo$.subscribe(console.log);
-const subscription3 = intervalo$.subscribe(console.log);
+const subscription = intervalo$.subscribe(observer);
+const subscription2 = intervalo$.subscribe(observer);
+const subscription3 = intervalo$.subscribe(observer);
+
+subscription.add(subscription2)
+subscription.add(subscription3)
  
 setTimeout(() => {
     subscription.unsubscribe();
-    subscription2.unsubscribe();
-    subscription3.unsubscribe();
-}, 3000);
+    // subscription2.unsubscribe();
+    // subscription3.unsubscribe();
+
+    console.log('completado timeout');
+}, 6000);
