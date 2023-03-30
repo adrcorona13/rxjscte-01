@@ -1,4 +1,4 @@
-import { Observable, Observer } from 'rxjs';
+import { Observable, Observer, Subject } from 'rxjs';
 
 const observer: Observer<any> = {
     next: v => console.log('next: ', v),
@@ -6,35 +6,40 @@ const observer: Observer<any> = {
     complete: () => console.info('complete'),
 }
 
-const intervalo$ = new Observable<number>(subscriber => {
-    let counter = 0;
+const intervalo$ = new Observable<number>(subs => {
+    
+    const intervalID = setInterval( () => {
+        subs.next(Math.random());
+        console.log('intervalo en ejecucion')
+    }, 1000);
+    
 
-    const interval = setInterval(() => {
-        subscriber.next(counter++);
-        console.log(counter);
-    }, 1000)
-
-    setTimeout(() => {
-        subscriber.complete()
-    }, 2500);
-
-    return () => {
-        clearInterval(interval);
+    return () =>  {
+        clearInterval(intervalID)
         console.log('intervalo destruido');
-    }
+    };
 });
 
-const subscription = intervalo$.subscribe(observer);
-const subscription2 = intervalo$.subscribe(observer);
-const subscription3 = intervalo$.subscribe(observer);
+// const s1 = intervalo$.subscribe(rnd => console.log('sub1: ', rnd));
+// const s2 = intervalo$.subscribe(rnd => console.log('sub2: ', rnd));
 
-subscription.add(subscription2)
-subscription.add(subscription3)
- 
+/**
+ *  1.- Casteo multiple (muchas subs sujetas al mismo subject para misma info a todos)
+ *  2.- Tambiene s un observer
+ *  3.- next, error y complete
+ */
+
+const subject$ = new Subject();
+const suscripcion = intervalo$.subscribe(subject$);
+
+// const s1 = subject$.subscribe(rnd => console.log('sub1: ', rnd));
+// const s2 = subject$.subscribe(rnd => console.log('sub2: ', rnd));
+
+const s1 = subject$.subscribe(observer);
+const s2 = subject$.subscribe(observer);
+
 setTimeout(() => {
-    subscription.unsubscribe();
-    // subscription2.unsubscribe();
-    // subscription3.unsubscribe();
-
-    console.log('completado timeout');
-}, 6000);
+    subject$.next(10);
+    subject$.complete();
+    suscripcion.unsubscribe();
+}, 3500);
